@@ -1,2 +1,3 @@
 # mkgoq
-markdown query lib. writen go.
+
+markdown query lib written in Go.
