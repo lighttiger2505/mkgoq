@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"syscall"
 
+	"github.com/lighttiger2505/mkgoq/lib/markdown"
 	"github.com/urfave/cli"
 )
 
@@ -30,5 +34,76 @@ func newApp() *cli.App {
 }
 
 func run(c *cli.Context) error {
+	if len(c.Args()) == 0 {
+		return fmt.Errorf("The required arguments were not provided: <markdown file>")
+	}
+	fpath := c.Args().First()
+
+	if !isExists(fpath) {
+		return fmt.Errorf("not found markdown file: %s", fpath)
+	}
+
+	file, err := os.OpenFile(fpath, os.O_RDONLY, 0666)
+	if err != nil {
+		return fmt.Errorf("cannot open file, %s", err.Error())
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("cannot read file, %s", err.Error())
+	}
+
+	fname := filepath.Base(file.Name())
+	abspath, err := filepath.Abs(file.Name())
+	if err != nil {
+		return err
+	}
+
+	headers := markdown.ParseHeader(string(b))
+	for _, header := range headers {
+		header.Name = fname
+		header.Path = abspath
+		fmt.Println(fmt.Sprintf(
+			"%s((%d, %d), (%d, %d)): %s",
+			header.Path,
+			header.Poss.St.Line,
+			header.Poss.St.Row,
+			header.Poss.En.Line,
+			header.Poss.En.Row,
+			header.RowString,
+		))
+	}
+
 	return nil
+}
+
+func isExists(filename string) bool {
+	_, err := os.Stat(filename)
+
+	if pathError, ok := err.(*os.PathError); ok {
+		if pathError.Err == syscall.ENOTDIR {
+			return false
+		}
+	}
+
+	if os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}
+
+func readContents(fpath string) (string, error) {
+	file, err := os.OpenFile(fpath, os.O_RDONLY, 0666)
+	if err != nil {
+		return "", fmt.Errorf("cannot open file, %s", err.Error())
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", fmt.Errorf("cannot read file, %s", err.Error())
+	}
+	return string(b), nil
 }
