@@ -8,7 +8,8 @@ import (
 type Header struct {
 	Path      string
 	Name      string
-	Poss      Positions
+	StPos     Position
+	EnPos     Position
 	RowString string
 	Value     string
 }
@@ -16,11 +17,6 @@ type Header struct {
 type Position struct {
 	Line int
 	Row  int
-}
-
-type Positions struct {
-	St Position
-	En Position
 }
 
 func ParseHeader(text string) []Header {
@@ -40,11 +36,12 @@ func ParseHeader(text string) []Header {
 		st := indices[i][0]
 		en := indices[i][1]
 
-		poss := walkInText(lines, st, en-1)
+		stPos, enPos := walkInText(lines, st, en-1)
 		header := Header{
 			Path:      "",
 			Name:      "",
-			Poss:      poss,
+			StPos:     stPos,
+			EnPos:     enPos,
 			RowString: str,
 			Value:     "",
 		}
@@ -53,38 +50,28 @@ func ParseHeader(text string) []Header {
 	return results
 }
 
-func getPositionsInText(text string, indices [][]int) []Positions {
-	results := []Positions{}
-	for _, index := range indices {
-		st := index[0]
-		en := index[1]
-		lines := strings.Split(text, "\n")
-		poss := walkInText(lines, st, en-1)
-		results = append(results, poss)
-	}
-	return results
-}
-
-func walkInText(lines []string, st, en int) Positions {
-	res := Positions{}
-
+func walkInText(lines []string, st, en int) (stPos Position, enPos Position) {
 	walkIndex := 0
-
 	for i, line := range lines {
 		lineIndex := i + 1
 		for rowIndex := 1; rowIndex < len(line)+1; rowIndex++ {
 			if st == walkIndex {
-				res.St.Row = rowIndex
-				res.St.Line = lineIndex
+				stPos = Position{
+					Row:  rowIndex,
+					Line: lineIndex,
+				}
 			}
 			if en == walkIndex {
-				res.En.Row = rowIndex
-				res.En.Line = lineIndex
+				enPos = Position{
+					Row:  rowIndex,
+					Line: lineIndex,
+				}
 			}
 			walkIndex++
 		}
 		// count line break
 		walkIndex++
 	}
-	return res
+	return
 }
+

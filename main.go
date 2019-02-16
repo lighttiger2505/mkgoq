@@ -67,10 +67,10 @@ func run(c *cli.Context) error {
 		fmt.Println(fmt.Sprintf(
 			"%s((%d, %d), (%d, %d)): %s",
 			header.Path,
-			header.Poss.St.Line,
-			header.Poss.St.Row,
-			header.Poss.En.Line,
-			header.Poss.En.Row,
+			header.StPos.Line,
+			header.StPos.Row,
+			header.EnPos.Line,
+			header.EnPos.Row,
 			header.RowString,
 		))
 	}
@@ -107,3 +107,4 @@ func readContents(fpath string) (string, error) {
 	}
 	return string(b), nil
 }
+
