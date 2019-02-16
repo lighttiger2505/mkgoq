@@ -92,6 +92,63 @@ func TestParseHeader(t *testing.T) {
 	}
 }
 
+func TestParseCodeBlock(t *testing.T) {
+	text := getTestContent(t, "./testdata/codeblock_test.md")
+	type args struct {
+		text string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []CodeBlock
+	}{
+		{
+			name: "normal",
+			args: args{
+				text: text,
+			},
+			want: []CodeBlock{
+				CodeBlock{
+					Path: "",
+					Name: "",
+					StPos: Position{
+						Line: 5,
+						Row:  1,
+					},
+					EnPos: Position{
+						Line: 13,
+						Row:  3,
+					},
+					RowString: "```go\npackage main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"hogehoge\")\n}\n```",
+					Value:     "",
+				},
+				CodeBlock{
+					Path: "",
+					Name: "",
+					StPos: Position{
+						Line: 19,
+						Row:  1,
+					},
+					EnPos: Position{
+						Line: 33,
+						Row:  3,
+					},
+					RowString: "```go\npackage hoge\n\nimport (\n\t\"testing\"\n)\n\nfunc TestSimple(t *testing.T) {\n\tgot := 1\n\twant := 2\n\tif got != want {\n\t\tt.Fatalf(\"want %v, but %v:\", want, got)\n\t}\n}\n```",
+					Value:     "",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ParseCodeBlock(tt.args.text)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseCodeBlock() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_walkInText(t *testing.T) {
 	lines := []string{
 		"# one",
